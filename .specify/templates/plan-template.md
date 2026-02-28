@@ -31,12 +31,7 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-- [ ] **Tenant Isolation**: Does every write include `restaurant_id` and have an associated RLS policy?
-- [ ] **Server Authority**: Are all totals, pricing, and business logic computed server-side?
-- [ ] **Realtime Sync**: Does this feature require realtime updates for the cashier/customer?
-- [ ] **Audit Trail**: Does this modification need to be recorded in `order_adjustments`?
-- [ ] **Security**: Is `SUPABASE_SERVICE_ROLE_KEY` kept server-side?
-- [ ] **Verification**: Are there unit/integration tests for mutation logic and RLS?
+[Gates determined based on constitution file]
 
 ## Project Structure
 
