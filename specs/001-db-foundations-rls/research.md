@@ -3,37 +3,34 @@
 ## Decisions
 
 ### 1. `is_restaurant_member()` Implementation
-- **Decision**: Simple join against `restaurant_users` table using `auth.uid()`.
-- **Rationale**: Supabase RLS is highly optimized for this pattern. For further optimization, we can use a security definer function to avoid recursive RLS issues.
-- **Alternatives**: Using a custom JWT claim (`app_metadata`) would be faster but more complex to sync when a user's role changes. Join is more reliable for MVP.
+- **Decision**: Joins against `restaurant_users` table using `auth.uid()`.
+- **Rationale**: Standard Supabase pattern. Function will be `SECURITY DEFINER` to allow RLS evaluation without circular dependencies.
 
 ### 2. RLS Verification Strategy
-- **Decision**: SQL-based verification querying `pg_tables` and `pg_policy`.
-- **Rationale**: Ensures `rowsecurity` is `true` for all tables in the `public` schema (excluding system tables).
-- **Alternatives**: Manual check (unreliable).
+- **Decision**: Query `pg_class` system catalog for `relrowsecurity` and `relforcerowsecurity`.
+- **Rationale**: Most accurate way to verify database-level enforcement status.
 
 ### 3. Automated Isolation Test
-- **Decision**: A standalone SQL script using `SET ROLE` and `set_config('request.jwt.claims', ...)` to simulate different users.
-- **Rationale**: Allows testing without external dependencies (no Node.js needed for DB-only phase). It can be executed via `psql` or Supabase SQL Editor.
-- **Alternatives**: `pgTAP` (adds a dependency/schema to the DB); Node.js scripts (requires environment setup).
+- **Decision**: SQL script at `infra/supabase/tests/sql/isolation_test.sql`.
+- **Rationale**: Keeps database tests co-located with the `infra/` boundary while resolving file organization conflicts. Uses `SET ROLE` to simulate JWT-based auth.
 
-## RLS/FORCE RLS Plan per Table
+## RLS/FORCE RLS Plan per Table (Phase 1: Members Only)
 
-| Table | RLS Mandatory | FORCE RLS | Policy Summary |
-|-------|---------------|-----------|----------------|
-| `restaurants` | Yes | Yes | Public can see slug; Owner/Manager can update. |
-| `restaurant_users` | Yes | Yes | Members can see fellow members; Owner can manage. |
-| `categories` | Yes | Yes | Public read; Manager/Owner manage. |
-| `menu_items` | Yes | Yes | Public read; Manager/Owner manage. |
-| `orders` | Yes | Yes | Creator (anon if allowed) or Restaurant Member access. |
-| `order_items` | Yes | Yes | Cascade from `orders` or direct member access. |
-| `payments` | Yes | Yes | Members only. |
-| `order_adjustments` | Yes | Yes | Members only. |
+| Table | RLS Mandatory | FORCE RLS | Phase 1 Policy Summary |
+|-------|---------------|-----------|------------------------|
+| `restaurants` | Yes | Yes | Members-only (Read/Update). *Public Slug Read: Phase 2.* |
+| `restaurant_users` | Yes | Yes | Members-only (Read members of same restaurant). |
+| `categories` | Yes | Yes | Members-only. *Public Read: Phase 2.* |
+| `menu_items` | Yes | Yes | Members-only. *Public Read: Phase 2.* |
+| `orders` | Yes | Yes | Members-only. *Public Creation: Phase 2.* |
+| `order_items` | Yes | Yes | Members-only. |
+| `payments` | Yes | Yes | Members-only. |
+| `order_adjustments` | Yes | Yes | Members-only. |
 
 ## Required Indexes Plan
 
-- `orders(restaurant_id, status, created_at DESC)`: For active order lists.
-- `orders(restaurant_id, expires_at)`: For expiry cron.
-- `order_items(order_id)`: For order lookups.
-- `restaurant_users(user_id, restaurant_id)`: For authentication/RLS performance.
-- `menu_items(restaurant_id, category_id)`: For menu rendering.
+- `orders(restaurant_id, status, created_at DESC)`: Active order dashboard performance.
+- `orders(restaurant_id, expires_at)`: Expiry worker efficiency.
+- `order_items(order_id)`: Order detail lookup.
+- `restaurant_users(user_id, restaurant_id)`: RLS evaluation performance.
+- `menu_items(restaurant_id, category_id)`: Categorized menu rendering.
