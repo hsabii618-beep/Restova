@@ -70,7 +70,7 @@ CREATE TABLE public.orders (
 CREATE TABLE public.order_items (
     id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
     order_id uuid NOT NULL REFERENCES public.orders(id) ON DELETE CASCADE,
-    -- item_id is nullable to preserve order records even if menu item is deleted (ON DELETE SET NULL)
+    -- Patch: item_id is nullable to support 'ON DELETE SET NULL' which preserves history
     item_id uuid REFERENCES public.menu_items(id) ON DELETE SET NULL,
     qty integer NOT NULL DEFAULT 1,
     unit_price numeric(10,2) NOT NULL,
