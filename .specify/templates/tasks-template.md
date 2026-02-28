@@ -1,225 +1,251 @@
 ---
+
 description: "Task list template for feature implementation"
 ---
 
 # Tasks: [FEATURE NAME]
 
-**Input**: Design documents from `/specs/[###-feature-name]/`  
-**Prerequisites**: plan.md (required), spec.md (required for user stories), research.md, data-model.md, contracts/  
+**Input**: Design documents from `/specs/[###-feature-name]/`
+**Prerequisites**: plan.md (required), spec.md (required for user stories), research.md, data-model.md, contracts/
 
-**Tests**: Include test tasks ONLY if explicitly requested in the feature specification.
+**Tests**: The examples below include test tasks. Tests are OPTIONAL - only include them if explicitly requested in the feature specification.
 
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
-
----
 
 ## Format: `[ID] [P?] [Story] Description`
 
 - **[P]**: Can run in parallel (different files, no dependencies)
 - **[Story]**: Which user story this task belongs to (e.g., US1, US2, US3)
-- Always include exact file paths in descriptions
+- Include exact file paths in descriptions
+
+## Path Conventions
+
+- **Single project**: `src/`, `tests/` at repository root
+- **Web app**: `backend/src/`, `frontend/src/`
+- **Mobile**: `api/src/`, `ios/src/` or `android/src/`
+- Paths shown below assume single project - adjust based on plan.md structure
+
+<!-- 
+  ============================================================================
+  IMPORTANT: The tasks below are SAMPLE TASKS for illustration purposes only.
+  
+  The /speckit.tasks command MUST replace these with actual tasks based on:
+  - User stories from spec.md (with their priorities P1, P2, P3...)
+  - Feature requirements from plan.md
+  - Entities from data-model.md
+  - Endpoints from contracts/
+  
+  Tasks MUST be organized by user story so each story can be:
+  - Implemented independently
+  - Tested independently
+  - Delivered as an MVP increment
+  
+  DO NOT keep these sample tasks in the generated tasks.md file.
+  ============================================================================
+-->
+
+## Phase 1: Setup (Shared Infrastructure)
+
+**Purpose**: Project initialization and basic structure
+
+- [ ] T001 Create project structure per implementation plan
+- [ ] T002 Initialize [language] project with [framework] dependencies
+- [ ] T003 [P] Configure linting and formatting tools
 
 ---
 
-# Path Conventions (Restova)
+## Phase 2: Foundational (Blocking Prerequisites)
 
-- Frontend (App Router): `frontend/app/`
-- API Route Handlers: `frontend/app/api/`
-- UI Components: `frontend/components/`
-- Shared Utilities: `frontend/lib/`
-- Supabase Migrations: `infra/supabase/migrations/`
-- Specs: `specs/[###-feature-name]/`
-- Tests:
-  - Contract Tests: `tests/contract/`
-  - Integration Tests: `tests/integration/`
-  - Unit Tests: `tests/unit/`
-- Documentation: `docs/`
+**Purpose**: Core infrastructure that MUST be complete before ANY user story can be implemented
 
----
+**⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-# Phase 1: Setup (Shared Infrastructure)
+Examples of foundational tasks (adjust based on your project):
 
-**Purpose**: Project initialization and base structure
+- [ ] T004 Setup database schema and migrations framework
+- [ ] T005 [P] Implement authentication/authorization framework
+- [ ] T006 [P] Setup API routing and middleware structure
+- [ ] T007 Create base models/entities that all stories depend on
+- [ ] T008 Configure error handling and logging infrastructure
+- [ ] T009 Setup environment configuration management
 
-- [ ] T001 Create folder structure according to Path Conventions
-- [ ] T002 Initialize Next.js project in `frontend/`
-- [ ] T003 [P] Configure ESLint + Prettier
-- [ ] T004 [P] Setup Supabase client in `frontend/lib/supabase.ts`
-- [ ] T005 Create environment variables structure (`.env.local`, `.env.example`)
+**Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
 ---
 
-# Phase 2: Foundational (Blocking Prerequisites)
+## Phase 3: User Story 1 - [Title] (Priority: P1) 🎯 MVP
 
-**Purpose**: Core infrastructure required before ANY user story
+**Goal**: [Brief description of what this story delivers]
 
-### Mandatory Rules
+**Independent Test**: [How to verify this story works on its own]
 
-- All database tables MUST include `restaurant_id` where applicable
-- RLS MUST be enabled with `FORCE ROW LEVEL SECURITY`
-- Service Role Key MUST NOT be used in client components
-- Service Role usage allowed ONLY inside server route handlers
+### Tests for User Story 1 (OPTIONAL - only if tests requested) ⚠️
 
----
+> **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-### Core Tasks
+- [ ] T010 [P] [US1] Contract test for [endpoint] in tests/contract/test_[name].py
+- [ ] T011 [P] [US1] Integration test for [user journey] in tests/integration/test_[name].py
 
-- [ ] T006 Setup Supabase migrations framework in `infra/supabase/migrations/`
-- [ ] T007 Create base tables (`restaurants`, `users`) with RLS enabled
-- [ ] T008 [P] Configure Supabase Auth integration
-- [ ] T009 [P] Setup API middleware structure inside `frontend/app/api/`
-- [ ] T010 Create reusable authorization helper in `frontend/lib/auth.ts`
-- [ ] T011 Setup structured logging utility in `frontend/lib/logger.ts`
-- [ ] T012 Configure environment validation logic in `frontend/lib/env.ts`
+### Implementation for User Story 1
 
----
+- [ ] T012 [P] [US1] Create [Entity1] model in src/models/[entity1].py
+- [ ] T013 [P] [US1] Create [Entity2] model in src/models/[entity2].py
+- [ ] T014 [US1] Implement [Service] in src/services/[service].py (depends on T012, T013)
+- [ ] T015 [US1] Implement [endpoint/feature] in src/[location]/[file].py
+- [ ] T016 [US1] Add validation and error handling
+- [ ] T017 [US1] Add logging for user story 1 operations
 
-✅ **Checkpoint**: Foundation ready — user stories may now begin in parallel
+**Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 
 ---
 
-# Phase 3: User Story 1 – [Title] (Priority: P1) 🎯 MVP
+## Phase 4: User Story 2 - [Title] (Priority: P2)
 
-**Goal**: [Short description of business value]  
-**Independent Test**: [Describe how to verify functionality end-to-end]
+**Goal**: [Brief description of what this story delivers]
 
----
+**Independent Test**: [How to verify this story works on its own]
 
-## Tests (ONLY if requested)
+### Tests for User Story 2 (OPTIONAL - only if tests requested) ⚠️
 
-> Write tests FIRST and ensure they FAIL before implementation
+- [ ] T018 [P] [US2] Contract test for [endpoint] in tests/contract/test_[name].py
+- [ ] T019 [P] [US2] Integration test for [user journey] in tests/integration/test_[name].py
 
-- [ ] T013 [P] [US1] Contract test in `tests/contract/test_[feature].ts`
-- [ ] T014 [P] [US1] Integration test in `tests/integration/test_[feature].ts`
+### Implementation for User Story 2
 
----
+- [ ] T020 [P] [US2] Create [Entity] model in src/models/[entity].py
+- [ ] T021 [US2] Implement [Service] in src/services/[service].py
+- [ ] T022 [US2] Implement [endpoint/feature] in src/[location]/[file].py
+- [ ] T023 [US2] Integrate with User Story 1 components (if needed)
 
-## Implementation
-
-- [ ] T015 [P] [US1] Create migration in `infra/supabase/migrations/[timestamp]_[entity].sql`
-- [ ] T016 [US1] Implement business logic in `frontend/app/api/[feature]/route.ts`
-- [ ] T017 [US1] Add validation logic inside `route.ts`
-- [ ] T018 [US1] Enforce `restaurant_id` filtering in queries
-- [ ] T019 [US1] Add structured logging
-- [ ] T020 [US1] Create UI component in `frontend/components/[Feature].tsx` (if applicable)
+**Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 
 ---
 
-✅ **Checkpoint**: User Story 1 fully functional and independently testable
+## Phase 5: User Story 3 - [Title] (Priority: P3)
+
+**Goal**: [Brief description of what this story delivers]
+
+**Independent Test**: [How to verify this story works on its own]
+
+### Tests for User Story 3 (OPTIONAL - only if tests requested) ⚠️
+
+- [ ] T024 [P] [US3] Contract test for [endpoint] in tests/contract/test_[name].py
+- [ ] T025 [P] [US3] Integration test for [user journey] in tests/integration/test_[name].py
+
+### Implementation for User Story 3
+
+- [ ] T026 [P] [US3] Create [Entity] model in src/models/[entity].py
+- [ ] T027 [US3] Implement [Service] in src/services/[service].py
+- [ ] T028 [US3] Implement [endpoint/feature] in src/[location]/[file].py
+
+**Checkpoint**: All user stories should now be independently functional
 
 ---
 
-# Phase 4: User Story 2 – [Title] (Priority: P2)
-
-**Goal**: [Business value]  
-**Independent Test**: [How to verify independently]
+[Add more user story phases as needed, following the same pattern]
 
 ---
 
-## Tests (Optional)
+## Phase N: Polish & Cross-Cutting Concerns
 
-- [ ] T021 [P] [US2] Contract test in `tests/contract/test_[feature].ts`
-- [ ] T022 [P] [US2] Integration test in `tests/integration/test_[feature].ts`
+**Purpose**: Improvements that affect multiple user stories
 
----
-
-## Implementation
-
-- [ ] T023 [P] [US2] Create migration in `infra/supabase/migrations/[timestamp]_[entity].sql`
-- [ ] T024 [US2] Implement API logic in `frontend/app/api/[feature]/route.ts`
-- [ ] T025 [US2] Add validation & RLS enforcement
-- [ ] T026 [US2] Create UI component in `frontend/components/[Feature].tsx`
-- [ ] T027 [US2] Integrate with US1 (without breaking independence)
+- [ ] TXXX [P] Documentation updates in docs/
+- [ ] TXXX Code cleanup and refactoring
+- [ ] TXXX Performance optimization across all stories
+- [ ] TXXX [P] Additional unit tests (if requested) in tests/unit/
+- [ ] TXXX Security hardening
+- [ ] TXXX Run quickstart.md validation
 
 ---
 
-✅ **Checkpoint**: US1 and US2 both independently working
+## Dependencies & Execution Order
+
+### Phase Dependencies
+
+- **Setup (Phase 1)**: No dependencies - can start immediately
+- **Foundational (Phase 2)**: Depends on Setup completion - BLOCKS all user stories
+- **User Stories (Phase 3+)**: All depend on Foundational phase completion
+  - User stories can then proceed in parallel (if staffed)
+  - Or sequentially in priority order (P1 → P2 → P3)
+- **Polish (Final Phase)**: Depends on all desired user stories being complete
+
+### User Story Dependencies
+
+- **User Story 1 (P1)**: Can start after Foundational (Phase 2) - No dependencies on other stories
+- **User Story 2 (P2)**: Can start after Foundational (Phase 2) - May integrate with US1 but should be independently testable
+- **User Story 3 (P3)**: Can start after Foundational (Phase 2) - May integrate with US1/US2 but should be independently testable
+
+### Within Each User Story
+
+- Tests (if included) MUST be written and FAIL before implementation
+- Models before services
+- Services before endpoints
+- Core implementation before integration
+- Story complete before moving to next priority
+
+### Parallel Opportunities
+
+- All Setup tasks marked [P] can run in parallel
+- All Foundational tasks marked [P] can run in parallel (within Phase 2)
+- Once Foundational phase completes, all user stories can start in parallel (if team capacity allows)
+- All tests for a user story marked [P] can run in parallel
+- Models within a story marked [P] can run in parallel
+- Different user stories can be worked on in parallel by different team members
 
 ---
 
-# Phase 5: User Story 3 – [Title] (Priority: P3)
+## Parallel Example: User Story 1
 
-**Goal**: [Business value]  
-**Independent Test**: [Verification method]
+```bash
+# Launch all tests for User Story 1 together (if tests requested):
+Task: "Contract test for [endpoint] in tests/contract/test_[name].py"
+Task: "Integration test for [user journey] in tests/integration/test_[name].py"
 
----
-
-## Tests (Optional)
-
-- [ ] T028 [P] [US3] Contract test in `tests/contract/test_[feature].ts`
-- [ ] T029 [P] [US3] Integration test in `tests/integration/test_[feature].ts`
-
----
-
-## Implementation
-
-- [ ] T030 [P] [US3] Create migration in `infra/supabase/migrations/[timestamp]_[entity].sql`
-- [ ] T031 [US3] Implement API route in `frontend/app/api/[feature]/route.ts`
-- [ ] T032 [US3] Add UI integration in `frontend/components/[Feature].tsx`
+# Launch all models for User Story 1 together:
+Task: "Create [Entity1] model in src/models/[entity1].py"
+Task: "Create [Entity2] model in src/models/[entity2].py"
+```
 
 ---
 
-✅ **Checkpoint**: All stories independently functional
+## Implementation Strategy
+
+### MVP First (User Story 1 Only)
+
+1. Complete Phase 1: Setup
+2. Complete Phase 2: Foundational (CRITICAL - blocks all stories)
+3. Complete Phase 3: User Story 1
+4. **STOP and VALIDATE**: Test User Story 1 independently
+5. Deploy/demo if ready
+
+### Incremental Delivery
+
+1. Complete Setup + Foundational → Foundation ready
+2. Add User Story 1 → Test independently → Deploy/Demo (MVP!)
+3. Add User Story 2 → Test independently → Deploy/Demo
+4. Add User Story 3 → Test independently → Deploy/Demo
+5. Each story adds value without breaking previous stories
+
+### Parallel Team Strategy
+
+With multiple developers:
+
+1. Team completes Setup + Foundational together
+2. Once Foundational is done:
+   - Developer A: User Story 1
+   - Developer B: User Story 2
+   - Developer C: User Story 3
+3. Stories complete and integrate independently
 
 ---
 
-# Phase N: Polish & Cross-Cutting Concerns
+## Notes
 
-- [ ] TXXX [P] Documentation updates in `docs/`
-- [ ] TXXX Code cleanup & refactoring
-- [ ] TXXX Performance optimization
-- [ ] TXXX [P] Additional unit tests in `tests/unit/`
-- [ ] TXXX Security hardening review
-- [ ] TXXX Validate quickstart.md instructions
-
----
-
-# Dependencies & Execution Order
-
-## Phase Dependencies
-
-- Setup → No dependencies
-- Foundational → Blocks ALL user stories
-- User Stories → Can run in parallel after Foundational
-- Polish → After required stories complete
-
----
-
-## Within Each User Story
-
-- Tests (if included) MUST fail before implementation
-- Migrations before API logic
-- API logic before UI integration
-- Validate independently before moving to next priority
-
----
-
-# Implementation Strategy
-
-## MVP Strategy
-
-1. Complete Setup
-2. Complete Foundational (CRITICAL)
-3. Complete User Story 1
-4. STOP and validate
-5. Deploy/demo MVP
-
----
-
-## Incremental Delivery
-
-Foundation → US1 → Validate → Deploy  
-Add US2 → Validate → Deploy  
-Add US3 → Validate → Deploy  
-
-Each story must add value independently.
-
----
-
-# Notes
-
-- [P] = parallelizable task
-- No cross-story hard coupling
-- Always enforce `restaurant_id`
-- Never expose Service Role Key to client
-- Commit after each logical milestone
+- [P] tasks = different files, no dependencies
+- [Story] label maps task to specific user story for traceability
+- Each user story should be independently completable and testable
+- Verify tests fail before implementing
+- Commit after each task or logical group
+- Stop at any checkpoint to validate story independently
+- Avoid: vague tasks, same file conflicts, cross-story dependencies that break independence
