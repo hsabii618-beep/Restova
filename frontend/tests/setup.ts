@@ -2,10 +2,10 @@ import 'dotenv/config'
 import dotenv from 'dotenv'
 
 dotenv.config({ path: '.env.local' })
-dotenv.config({ path: '.env.server.local' }) 
+dotenv.config({ path: '.env.server.local' })
 
 
-import { createClient } from '@supabase/supabase-js'
+import { createClient, type User } from '@supabase/supabase-js'
 import { beforeAll, afterAll } from 'vitest'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -18,14 +18,14 @@ const supabaseAnon = createClient(supabaseUrl, supabaseAnonKey)
 // Generate a per-run unique suffix to avoid duplicate email conflicts
 const RUN_ID = `${Date.now()}-${Math.random().toString(16).slice(2)}`
 
-let userA: any
-let userB: any
+let userA: User | null = null
+let userB: User | null = null
 let tokenA: string
 let tokenB: string
 
 async function getOrCreateTestUser(email: string) {
   // Try to create user via Admin API
-  const { data, error } = await supabaseAdmin.auth.admin.createUser({
+  const { error } = await supabaseAdmin.auth.admin.createUser({
     email,
     password: 'password123',
     email_confirm: true
@@ -65,12 +65,12 @@ beforeAll(async () => {
     .or(`slug.like.user-a-%,slug.like.user-b-%,slug.eq.test-restaurant,created_at.gte.${yesterday}`)
 
   if (restaurants && restaurants.length > 0) {
-    const rIds = restaurants.map((r: any) => r.id)
+    const rIds = restaurants.map((r: { id: string }) => r.id)
 
     // Clean up potential children rows if any test starts creating them
     const { data: orders } = await supabaseAdmin.from('orders').select('id').in('restaurant_id', rIds)
     if (orders && orders.length > 0) {
-      const oIds = orders.map((o: any) => o.id)
+      const oIds = orders.map((o: { id: string }) => o.id)
       await supabaseAdmin.from('order_adjustments').delete().in('order_id', oIds)
       await supabaseAdmin.from('payments').delete().in('order_id', oIds)
       await supabaseAdmin.from('order_items').delete().in('order_id', oIds)

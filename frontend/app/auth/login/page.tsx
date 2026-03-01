@@ -9,7 +9,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams.get('next') || '/dashboard';
@@ -37,7 +37,7 @@ export default function LoginPage() {
   return (
     <div style={{ maxWidth: '400px', margin: '100px auto', padding: '2rem', border: '1px solid #eaeaea', borderRadius: '8px', fontFamily: 'sans-serif' }}>
       <h1 style={{ textAlign: 'center', marginBottom: '1.5rem' }}>Log In</h1>
-      
+
       {error && (
         <div style={{ padding: '1rem', backgroundColor: '#fff5f5', color: '#c53030', borderRadius: '4px', marginBottom: '1rem' }}>
           {error}
@@ -70,13 +70,13 @@ export default function LoginPage() {
         <button
           type="submit"
           disabled={loading}
-          style={{ 
-            padding: '0.75rem', 
-            borderRadius: '4px', 
-            border: 'none', 
-            backgroundColor: '#0070f3', 
-            color: 'white', 
-            fontWeight: 'bold', 
+          style={{
+            padding: '0.75rem',
+            borderRadius: '4px',
+            border: 'none',
+            backgroundColor: '#0070f3',
+            color: 'white',
+            fontWeight: 'bold',
             cursor: loading ? 'not-allowed' : 'pointer',
             opacity: loading ? 0.7 : 1
           }}
@@ -85,7 +85,7 @@ export default function LoginPage() {
         </button>
       </form>
       <p style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.9rem' }}>
-        Don't have an account? <a href="/auth/signup" style={{ color: '#0070f3', textDecoration: 'none' }}>Sign Up</a>
+        Don&apos;t have an account? <a href="/auth/signup" style={{ color: '#0070f3', textDecoration: 'none' }}>Sign Up</a>
       </p>
     </div>
   );

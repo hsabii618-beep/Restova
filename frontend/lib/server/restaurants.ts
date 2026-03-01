@@ -1,4 +1,11 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+
+interface RestaurantRow {
+  id: string
+  name: string
+  slug: string
+  [key: string]: unknown
+}
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -68,7 +75,7 @@ export async function provisionRestaurant({ userId, name, slug }: { userId: stri
   }
 }
 
-export async function listUserRestaurants(userId: string, supabase?: any) {
+export async function listUserRestaurants(userId: string, supabase?: SupabaseClient) {
   const client = supabase || supabaseAdmin
   const query = client
     .from('restaurants')
@@ -89,7 +96,7 @@ export async function listUserRestaurants(userId: string, supabase?: any) {
   }
 
   return {
-    data: data.map((r: any) => ({
+    data: (data as RestaurantRow[]).map((r) => ({
       ...r,
       role: 'owner'
     })),
@@ -97,7 +104,7 @@ export async function listUserRestaurants(userId: string, supabase?: any) {
   }
 }
 
-export async function getRestaurantForUser(userId: string, restaurantId: string, supabase?: any) {
+export async function getRestaurantForUser(userId: string, restaurantId: string, supabase?: SupabaseClient) {
   const client = supabase || supabaseAdmin
 
   // If a user-scoped client is provided, we rely on RLS and don't strictly need eq('owner_id', userId)

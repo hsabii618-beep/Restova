@@ -19,7 +19,7 @@ function getSupabaseKeys() {
 
 export async function updateSession(request: NextRequest) {
   // مهم: نمرر headers للـ NextResponse حتى لا نفقد السياق
-  let response = NextResponse.next({
+  const response = NextResponse.next({
     request: { headers: request.headers },
   })
 
@@ -46,7 +46,7 @@ export async function updateSession(request: NextRequest) {
     if (!error && userData?.user) {
       hasAuth = true
     }
-  } catch (error) {
+  } catch {
     hasAuth = false
   }
 
