@@ -1,6 +1,7 @@
 import React from "react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import ActiveOrdersView from "./active-orders-view";
 
 type Restaurant = {
   id: string;
@@ -36,7 +37,7 @@ export default async function DashboardPage() {
 
   return (
     <div style={{ display: "grid", gap: "1rem" }}>
-      <h2 style={{ margin: 0 }}>Supervisor Dashboard</h2>
+      <h2 style={{ margin: 0 }}>Cashier Dashboard</h2>
 
       <div style={{ padding: "1rem", border: "1px solid #eaeaea", borderRadius: 8 }}>
         <div>
@@ -51,9 +52,7 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      <div style={{ padding: "1rem", border: "1px solid #eaeaea", borderRadius: 8 }}>
-        <p style={{ margin: 0 }}>Next step: build staff management, reports, and restaurant settings.</p>
-      </div>
+      <ActiveOrdersView restaurantId={membership.restaurant_id} />
     </div>
   );
 }
