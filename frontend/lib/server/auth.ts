@@ -7,12 +7,11 @@ export async function getAuthUser(request: NextRequest) {
     const authHeader = request.headers.get('Authorization')
     const token = authHeader?.split(' ')[1]
 
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
-    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-
-    let supabase;
+    let supabase
     if (token) {
-      // Create a user-scoped client using the Bearer token for RLS
+      const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
+      const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      
       supabase = createClient(url, anonKey, {
         global: {
           headers: {
@@ -20,11 +19,12 @@ export async function getAuthUser(request: NextRequest) {
           }
         },
         auth: {
-          persistSession: false
+          persistSession: false,
+          autoRefreshToken: false,
+          detectSessionInUrl: false
         }
       })
     } else {
-      // Fallback to cookie-based server client
       supabase = await createSupabaseServerClient()
     }
 

@@ -19,24 +19,20 @@ const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
 })
 
 export async function provisionRestaurant({ userId, name, slug }: { userId: string, name: string, slug: string }) {
-  // 1. Normalize slug
   const normalizedSlug = slug
     .toLowerCase()
     .trim()
-    .replace(/\s+/g, '-')
-    .replace(/[^a-z0-9-]/g, '')
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-]/g, "")
 
   if (!normalizedSlug) {
-    return { data: null, error: { status: 400, message: 'Invalid slug' } }
+    return { data: null, error: { status: 400, message: "Invalid slug" } }
   }
 
-  // 2. Enforce single restaurant constraint
-  // Architecture hint: membership is handled inside 'restaurants' table via 'owner_id' column
-  // Try explicit schema prefix if implicit fails
   const { data: existingRestaurant, error: checkError } = await supabaseAdmin
-    .from('restaurants')
-    .select('id')
-    .eq('owner_id', userId)
+    .from("restaurants")
+    .select("id")
+    .eq("owner_id", userId)
     .maybeSingle()
 
   if (checkError) {
@@ -44,35 +40,31 @@ export async function provisionRestaurant({ userId, name, slug }: { userId: stri
   }
 
   if (existingRestaurant) {
-    return { data: null, error: { status: 409, message: 'Conflict' } }
+    return { data: null, error: { status: 409, message: "Conflict" } }
   }
 
-  // 3. Create restaurant
   const { data: restaurant, error: createError } = await supabaseAdmin
-    .from('restaurants')
-    .insert({
-      name,
-      slug: normalizedSlug,
-      owner_id: userId
-    })
+    .from("restaurants")
+    .insert({ name, slug: normalizedSlug, owner_id: userId })
     .select()
     .single()
 
   if (createError) {
-    if (createError.code === '23505') { // Unique violation
-      return { data: null, error: { status: 409, message: 'Conflict' } }
+    if ((createError as { code?: string }).code === "23505") {
+      return { data: null, error: { status: 409, message: "Conflict" } }
     }
     return { data: null, error: { status: 500, message: createError.message } }
   }
 
-  // 4. Return with membership object as expected by tests
-  return {
-    data: {
-      ...restaurant,
-      membership: { role: 'owner' }
-    },
-    error: null
+  const { error: memberError } = await supabaseAdmin
+    .from("restaurant_users")
+    .insert({ user_id: userId, restaurant_id: restaurant.id, role: "owner" })
+
+  if (memberError) {
+    return { data: null, error: { status: 500, message: memberError.message } }
   }
+
+  return { data: { ...restaurant, membership: { role: "owner" } }, error: null }
 }
 
 export async function listUserRestaurants(userId: string, supabase?: SupabaseClient) {
