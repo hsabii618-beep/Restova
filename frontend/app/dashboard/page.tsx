@@ -1,5 +1,5 @@
 import React from "react";
-import { createClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
 type Restaurant = {
@@ -15,7 +15,7 @@ type MembershipRow = {
 };
 
 export default async function DashboardPage() {
-  const supabase = createClient();
+  const supabase = await createSupabaseServerClient();
 
   const {
     data: { user },
