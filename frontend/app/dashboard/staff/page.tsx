@@ -1,6 +1,6 @@
 import { requireDashboardRole } from "../role-guard";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { createClient } from "@supabase/supabase-js";
+import { createSupabaseAdminClient } from "@/lib/server/supabase-admin";
 import StaffManager, { StaffMember } from "./staff-manager";
 
 export default async function StaffPage() {
@@ -9,11 +9,7 @@ export default async function StaffPage() {
     const supabase = await createSupabaseServerClient();
 
     // Use service role just to lookup auth.users metadata safely server-side
-    const supabaseAdmin = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!,
-        { auth: { persistSession: false, autoRefreshToken: false } }
-    );
+    const supabaseAdmin = createSupabaseAdminClient();
 
     // Fetch all staff linkages
     const { data: staffData } = await supabase
