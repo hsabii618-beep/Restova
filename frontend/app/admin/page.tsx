@@ -2,7 +2,7 @@ import React from "react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { isPlatformAdminEmail } from "@/lib/server/platform-admin";
-import { createClient } from "@supabase/supabase-js";
+import { createSupabaseAdminClient } from "@/lib/server/supabase-admin";
 import PendingApprovalList from "./PendingApprovalList";
 
 export default async function AdminPage() {
@@ -21,11 +21,7 @@ export default async function AdminPage() {
     }
 
     // Use service role to bypass RLS for platform admin view
-    const adminSupabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!,
-        { auth: { persistSession: false } }
-    );
+    const adminSupabase = createSupabaseAdminClient();
 
     const { data: pendingRestaurants } = await adminSupabase
         .from("restaurants")
