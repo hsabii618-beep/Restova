@@ -38,7 +38,8 @@ export default async function RestaurantDashboardPage({ params }: Props) {
   }
 
   const role = memberData.role;
-  const restaurant = memberData.restaurants as any;
+  const restaurantRow = memberData.restaurants;
+  const restaurant = (Array.isArray(restaurantRow) ? restaurantRow[0] : restaurantRow) as { id: string, name: string, slug: string };
 
   // 2. Fetch pending staff approvals for banner
   let pendingApprovalsCount = 0;

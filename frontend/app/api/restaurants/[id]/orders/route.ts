@@ -3,6 +3,14 @@ import { getAuthUser } from "@/lib/server/auth";
 import { sanitizeText } from "@/lib/server/restaurants";
 import { securityAudit, SECURITY_CONFIG } from "@/lib/server/security";
 
+interface OrderItem {
+    item_id: string;
+    qty: string | number;
+    unit_price: string | number;
+    notes?: string | null;
+}
+
+
 export async function POST(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
@@ -68,13 +76,14 @@ export async function POST(
         }
 
         // 2. Create order items
-        const orderItemsPayload = items.map((item: any) => ({
+        const orderItemsPayload = items.map((item: OrderItem) => ({
             order_id: orderData.id,
             item_id: item.item_id,
-            qty: Math.max(1, parseInt(item.qty) || 1),
-            unit_price: parseFloat(item.unit_price) || 0,
+            qty: Math.max(1, parseInt(item.qty as string) || 1),
+            unit_price: parseFloat(item.unit_price as string) || 0,
             notes: item.notes ? sanitizeText(item.notes, 255) : null
         }));
+
 
         const { error: itemsError } = await supabase
             .from("order_items")
@@ -89,9 +98,10 @@ export async function POST(
         if (payment && status === "paid") {
             const memberEntityRes = await supabase.from("restaurant_users").select("id").eq("restaurant_id", id).eq("user_id", user.id).single();
 
-            const totalRequired = orderItemsPayload.reduce((acc: number, it: any) => acc + (it.qty * it.unit_price), 0);
+            const totalRequired = orderItemsPayload.reduce((acc, it) => acc + (it.qty * it.unit_price), 0);
             const received = parseFloat(payment.receivedAmount) || totalRequired;
             const change = received > totalRequired ? received - totalRequired : 0;
+
 
             const { error: paymentError } = await supabase.from("payments").insert({
                 order_id: orderData.id,
@@ -109,7 +119,7 @@ export async function POST(
 
         return NextResponse.json({ message: "Order created", order_id: orderData.id }, { status: 201 });
 
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error("Order API error:", err);
         return NextResponse.json({ error: "Internal server error" }, { status: 500 });
     }

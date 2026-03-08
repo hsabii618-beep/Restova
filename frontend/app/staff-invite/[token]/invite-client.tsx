@@ -1,26 +1,38 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { type User } from '@supabase/supabase-js';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
+
 import { AuthLayout } from '@/components/auth/AuthLayout';
 import { validateStaffFullName } from '@/lib/server/staff-invitation-validation';
 import Link from 'next/link';
 
+interface InvitationDetails {
+    role: string;
+    restaurants: {
+        name: string;
+        slug: string;
+    };
+}
+
 interface InviteClientProps {
     token: string;
-    initialInvitation: any;
+    initialInvitation: InvitationDetails | null;
     initialError: string | null;
 }
 
+
 export function InviteClient({ token, initialInvitation, initialError }: InviteClientProps) {
-    const [user, setUser] = useState<any>(null);
+    const [user, setUser] = useState<User | null>(null);
+
+
     const [fullName, setFullName] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(initialError);
     const [success, setSuccess] = useState(false);
-    const router = useRouter();
     const supabase = createSupabaseBrowserClient();
+
 
     useEffect(() => {
         const checkUser = async () => {
@@ -68,9 +80,10 @@ export function InviteClient({ token, initialInvitation, initialError }: InviteC
             } else {
                 setSuccess(true);
             }
-        } catch (err) {
+        } catch {
             setError("A system error occurred. Please try again.");
         } finally {
+
             setLoading(false);
         }
     };
@@ -88,13 +101,15 @@ export function InviteClient({ token, initialInvitation, initialError }: InviteC
             >
                 <div className="flex flex-col gap-6 text-center mt-6">
                     <p className="text-sm text-muted-foreground leading-relaxed">
-                        We've registered your join request for <strong>{initialInvitation?.restaurants?.name}</strong>.
+                        We&apos;ve registered your join request for <strong>{initialInvitation?.restaurants?.name}</strong>.
                     </p>
+
                     <div className="p-4 bg-muted/30 rounded-lg border border-border/50 text-sm">
                         <p className="font-medium text-foreground">Next Step</p>
                         <p className="text-muted-foreground mt-1">
-                            Your manager has been notified. Once they approve your account, you'll be able to access the dashboard.
+                            Your manager has been notified. Once they approve your account, you&apos;ll be able to access the dashboard.
                         </p>
+
                     </div>
                     <Link href="/" className="text-brand-primary font-semibold hover:underline mt-4 block">Return to Homepage</Link>
                 </div>
@@ -121,9 +136,10 @@ export function InviteClient({ token, initialInvitation, initialError }: InviteC
                 title="Join the team" 
                 subtitle={
                     <>
-                        You've been invited to join <strong>{initialInvitation?.restaurants?.name}</strong> as a <strong>{initialInvitation?.role}</strong>.
+                        You&apos;ve been invited to join <strong>{initialInvitation?.restaurants?.name}</strong> as a <strong>{initialInvitation?.role}</strong>.
                     </>
                 }
+
             >
                 <div className="space-y-6 mt-6">
                     <p className="text-sm text-muted-foreground text-center">

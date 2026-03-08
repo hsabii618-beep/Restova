@@ -14,6 +14,17 @@ export default async function SettingsPage({ params }: Props) {
         return <div>Restaurant not found</div>;
     }
 
+    interface Restaurant {
+        id: string;
+        name: string;
+        slug: string;
+        custom_domain: string | null;
+        menu_path: string;
+        domain_verified: boolean;
+        is_menu_public: boolean;
+        is_slug_locked: boolean;
+    }
+
     return (
         <div className="flex flex-col gap-6">
             <div>
@@ -21,7 +32,7 @@ export default async function SettingsPage({ params }: Props) {
                 <p className="text-neutral-500">Manage restaurant profile, domain, and menu publishing.</p>
             </div>
 
-            <SettingsManager restaurant={restaurant as any} />
+            <SettingsManager restaurant={restaurant as unknown as Restaurant} />
         </div>
     );
 }

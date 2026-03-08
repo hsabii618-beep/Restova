@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { createBrowserClient } from "@supabase/ssr";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { Plus, UtensilsCrossed, Edit2, Save, X, Trash2 } from "lucide-react";
 
 type Category = {
@@ -21,12 +21,7 @@ type MenuItem = {
 };
 
 export default function MenuManager({ restaurantId }: { restaurantId: string }) {
-    const supabase = useMemo(() => {
-        return createBrowserClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL!,
-            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-        );
-    }, []);
+    const supabase = useMemo(() => createSupabaseBrowserClient(), []);
 
     const [categories, setCategories] = useState<Category[]>([]);
     const [menuItems, setMenuItems] = useState<MenuItem[]>([]);

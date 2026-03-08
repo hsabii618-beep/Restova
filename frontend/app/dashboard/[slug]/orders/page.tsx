@@ -8,7 +8,7 @@ interface Props {
 
 export default async function OrdersPage({ params }: Props) {
     const { slug } = await params;
-    const { restaurantId, role } = await requireDashboardRole(["owner", "manager", "cashier"], slug);
+    const { restaurantId } = await requireDashboardRole(["owner", "manager", "cashier"], slug);
 
     const supabase = await createSupabaseServerClient();
 
@@ -30,5 +30,5 @@ export default async function OrdersPage({ params }: Props) {
         .eq("restaurant_id", restaurantId)
         .order("created_at", { ascending: false });
 
-    return <OrdersManager restaurantId={restaurantId} slug={slug} userRole={role} initialOrders={(orders as unknown as Order[]) || []} />;
+    return <OrdersManager restaurantId={restaurantId} slug={slug} initialOrders={(orders as unknown as Order[]) || []} />;
 }

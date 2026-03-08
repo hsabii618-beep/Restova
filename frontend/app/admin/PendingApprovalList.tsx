@@ -3,7 +3,16 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-export default function PendingApprovalList({ restaurants }: { restaurants: any[] }) {
+interface Restaurant {
+    id: string;
+    name: string;
+    slug: string;
+    owner_id: string;
+    created_at: string;
+}
+
+export default function PendingApprovalList({ restaurants }: { restaurants: Restaurant[] }) {
+
     const router = useRouter();
     const [loadingId, setLoadingId] = useState<string | null>(null);
     const [actionType, setActionType] = useState<'activate' | 'suspend' | null>(null);
@@ -34,9 +43,10 @@ export default function PendingApprovalList({ restaurants }: { restaurants: any[
             // Keep loading state until refresh completes by unmounting,
             // but in case it doesn't unmount immediately, we clear it after a short delay
             setTimeout(() => setLoadingId(null), 500);
-        } catch (err: any) {
+        } catch (err: unknown) {
             setErrorId(id);
-            setErrorMsg(err.message);
+            setErrorMsg(err instanceof Error ? err.message : "An unknown error occurred");
+
             setLoadingId(null);
             setActionType(null);
         }

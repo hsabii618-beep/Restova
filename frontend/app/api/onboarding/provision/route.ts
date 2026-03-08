@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
   let body = {}
   try {
     body = await request.json()
-  } catch (e) {
+  } catch {
     // ignore
   }
   const { name, slug } = body as { name?: string, slug?: string };

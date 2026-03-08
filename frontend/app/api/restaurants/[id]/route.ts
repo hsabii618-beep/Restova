@@ -61,7 +61,7 @@ export async function PATCH(
 
     // White-list fields that can be updated via this endpoint
     const allowedFields = ['name', 'is_open', 'custom_domain', 'menu_path', 'is_menu_public', 'slug']
-    const payload: any = {}
+    const payload: Record<string, unknown> = {}
 
     for (const field of allowedFields) {
       if (body[field] !== undefined) {

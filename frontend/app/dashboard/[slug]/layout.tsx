@@ -1,6 +1,7 @@
 import React from "react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { redirect, notFound } from "next/navigation";
+import { redirect } from "next/navigation";
+
 import LogoutButton from "@/components/auth/logout-button";
 import Link from "next/link";
 import { 
@@ -65,7 +66,16 @@ export default async function RestaurantDashboardLayout({ children, params }: Pr
   }
 
   const role = memberData.role;
-  const restaurant = memberData.restaurants as any;
+  const restaurantRow = memberData.restaurants;
+  const restaurant = (Array.isArray(restaurantRow) ? restaurantRow[0] : restaurantRow) as { 
+    id: string, 
+    name: string, 
+    slug: string, 
+    is_active: boolean, 
+    deleted_at: string | null,
+    is_open: boolean
+  };
+
 
   // 3. Handle Special States (Rejected / Inactive)
   if (restaurant.deleted_at) {
@@ -188,7 +198,12 @@ function Sidebar({ slug, role, pendingApprovals }: { slug: string, role: string;
   );
 }
 
-function Topbar({ user, role, restaurant }: { user: any, role: string, restaurant: any }) {
+function Topbar({ user, role, restaurant }: { 
+  user: { email?: string; user_metadata?: { full_name?: string; name?: string } }, 
+  role: string, 
+  restaurant: { name: string } 
+}) {
+
   const displayName = user.user_metadata?.full_name || user.user_metadata?.name || user.email;
 
   return (

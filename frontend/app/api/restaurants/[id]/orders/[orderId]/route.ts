@@ -2,6 +2,13 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getAuthUser } from "@/lib/server/auth";
 import { securityAudit, SECURITY_CONFIG } from "@/lib/server/security";
 
+interface OrderItem {
+    item_id: string;
+    qty: number;
+    unit_price: number;
+    notes?: string | null;
+}
+
 export async function PUT(
     request: NextRequest,
     { params }: { params: Promise<{ id: string, orderId: string }> }
@@ -72,13 +79,14 @@ export async function PUT(
         // 2. Overwrite items (simplest approach: delete existing, insert new)
         await supabase.from("order_items").delete().eq("order_id", orderId);
 
-        const orderItemsPayload = items.map((item: any) => ({
+        const orderItemsPayload = items.map((item: OrderItem) => ({
             order_id: orderId,
             item_id: item.item_id,
             qty: item.qty,
             unit_price: item.unit_price,
             notes: item.notes || null
         }));
+
 
         const { error: itemsError } = await supabase
             .from("order_items")
@@ -92,7 +100,8 @@ export async function PUT(
         // 3. Optional: Map Cashier Payments
         if (payment && status === "paid") {
             const creatorName = user.user_metadata?.full_name || user.user_metadata?.name || user.email || "Staff Member";
-            const totalRequired = orderItemsPayload.reduce((acc: number, it: any) => acc + (it.qty * it.unit_price), 0);
+            const totalRequired = orderItemsPayload.reduce((acc, it) => acc + (it.qty * it.unit_price), 0);
+
             const received = parseFloat(payment.receivedAmount) || totalRequired;
             const change = received > totalRequired ? received - totalRequired : 0;
 
@@ -112,7 +121,8 @@ export async function PUT(
 
         return NextResponse.json({ message: "Order updated successfully", order_id: orderId }, { status: 200 });
 
-    } catch (err: any) {
+    } catch (err: unknown) {
+
         console.error("Order API PUT error:", err);
         return NextResponse.json({ error: "Internal server error" }, { status: 500 });
     }

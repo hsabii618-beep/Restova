@@ -4,7 +4,7 @@ import { getAuthUser } from "@/lib/server/auth"
 import { isPlatformAdminEmail } from "@/lib/server/platform-admin"
 import { logAdminAction } from "@/lib/server/audit-logger"
 import { headers } from "next/headers"
-import { securityAudit, SECURITY_CONFIG } from "@/lib/server/security"
+import { securityAudit } from "@/lib/server/security"
 
 function getEnv() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL

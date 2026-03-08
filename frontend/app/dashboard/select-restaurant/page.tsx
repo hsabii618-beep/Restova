@@ -1,7 +1,8 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Building2, ChevronRight, UserCircle } from "lucide-react";
+import { Building2, ChevronRight } from "lucide-react";
+
 import LogoutButton from "@/components/auth/logout-button";
 
 export default async function SelectRestaurantPage() {
@@ -60,9 +61,11 @@ export default async function SelectRestaurantPage() {
         </div>
 
         <div className="grid gap-4">
-          {memberships.map((membership: any) => {
-            const restaurant = membership.restaurants;
+          {memberships.map((membership) => {
+            const restaurantRaw = membership.restaurants;
+            const restaurant = Array.isArray(restaurantRaw) ? restaurantRaw[0] : restaurantRaw;
             if (!restaurant) return null;
+
 
             return (
               <Link

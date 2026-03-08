@@ -141,7 +141,7 @@ export function verifySafeOrigin(request: NextRequest) {
 /**
  * Structured Security Logger
  */
-export function logSecurityEvent(event: string, details: Record<string, any>) {
+export function logSecurityEvent(event: string, details: Record<string, unknown>) {
     const timestamp = new Date().toISOString();
     const logEntry = {
         timestamp,

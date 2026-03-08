@@ -1,6 +1,25 @@
-export { sanitizeText, validateDomain, validateMenuPath, validateEmail, validateName, normalizeSlug, validateSlug } from "./restaurant-validation"
-import { sanitizeText, validateDomain, validateMenuPath, validateEmail, validateName, normalizeSlug, validateSlug } from "./restaurant-validation"
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import { 
+  sanitizeText, 
+  validateDomain, 
+  validateMenuPath, 
+  validateEmail, 
+  validateName, 
+  normalizeSlug, 
+  validateSlug 
+} from "./restaurant-validation"
+
+export { 
+  sanitizeText, 
+  validateDomain, 
+  validateMenuPath, 
+  validateEmail, 
+  validateName, 
+  normalizeSlug, 
+  validateSlug 
+}
+
+import { type SupabaseClient } from '@supabase/supabase-js'
+import { createSupabaseAdminClient } from './supabase-admin'
 import { logSecurityEvent } from './security'
 
 interface RestaurantRow {
@@ -10,16 +29,7 @@ interface RestaurantRow {
   [key: string]: unknown
 }
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
-
-// Use service role for provisioning to ensure atomicity and proper linking
-const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false
-  }
-})
+const supabaseAdmin = createSupabaseAdminClient()
 
 export async function provisionRestaurant({ userId, name, slug }: { userId: string, name: string, slug: string }) {
   const sanitizedName = sanitizeText(name, 100);
@@ -82,12 +92,19 @@ export async function listUserRestaurants(userId: string, supabase?: SupabaseCli
   }
 
   return {
-    data: (data || []).map((membership: any) => ({
-      ...membership.restaurants,
-      role: membership.role
-    })),
+    data: (data || []).map((membership) => {
+      const restaurant = Array.isArray(membership.restaurants) 
+        ? membership.restaurants[0] 
+        : membership.restaurants;
+      return {
+        ...restaurant,
+        role: membership.role
+      }
+    }),
     error: null
   }
+
+
 }
 
 export async function getRestaurantForUser(userId: string, restaurantId: string, supabase?: SupabaseClient) {
@@ -316,8 +333,9 @@ export async function getPublicMenu(identifier: string, menuPath: string) {
     restaurant,
     categories: (categories || []).map(cat => ({
       ...cat,
-      menu_items: (cat.menu_items || []).filter((item: any) => item.is_available)
+      menu_items: (cat.menu_items || []).filter((item: { is_available: boolean }) => item.is_available)
     }))
+
   }
 
   return { data: menuData, error: null }

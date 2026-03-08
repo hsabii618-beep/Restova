@@ -48,7 +48,8 @@ export async function requireTenantContext(allowedRoles: string[], slug?: string
 
   const membership = memberships[0]
   const role = membership.role
-  const restaurant = membership.restaurants as any
+  const restaurantRaw = membership.restaurants;
+  const restaurant = (Array.isArray(restaurantRaw) ? restaurantRaw[0] : restaurantRaw) as { id: string, name: string, slug: string, is_active: boolean, deleted_at: string | null }
 
   // 3. Role verification
   if (!role || !allowedRoles.includes(role)) {

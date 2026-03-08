@@ -39,7 +39,8 @@ export default async function DashboardPage() {
   }
 
   if (memberships.length === 1) {
-    const slug = (memberships[0].restaurants as any)?.slug;
+    const restaurantRaw = memberships[0].restaurants;
+    const slug = (Array.isArray(restaurantRaw) ? restaurantRaw[0] : restaurantRaw)?.slug;
     if (slug) {
       redirect(`/dashboard/${slug}`);
     }

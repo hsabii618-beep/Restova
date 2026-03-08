@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Clock, CheckCircle, Package, ChefHat, Check, ArrowRight, ShoppingCart } from "lucide-react";
+import { Clock, CheckCircle, Check, ShoppingCart } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
@@ -30,7 +30,7 @@ type Props = {
     initialOrders: Order[];
 };
 
-export default function OrdersManager({ restaurantId, slug, userRole, initialOrders }: Props) {
+export default function OrdersManager({ restaurantId, slug, initialOrders }: Omit<Props, 'userRole'>) {
     const router = useRouter();
     const [orders, setOrders] = useState<Order[]>(initialOrders);
     const [loadingMap, setLoadingMap] = useState<Record<string, boolean>>({});
@@ -58,7 +58,7 @@ export default function OrdersManager({ restaurantId, slug, userRole, initialOrd
                 setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
                 router.refresh();
             }
-        } catch (err) {
+        } catch {
             console.error("Failed to update status");
         }
         setLoadingMap(prev => ({ ...prev, [orderId]: false }));

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
-import { PlusCircle, Search, ShoppingCart, Minus, Plus, X, ChefHat, Check, CreditCard, Banknote, Printer } from "lucide-react";
+import { useState, useMemo } from "react";
+import { PlusCircle, Search, ShoppingCart, Minus, Plus, X, Check, CreditCard, Banknote, Printer } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export type Category = { id: string; name: string; position: number; is_active: boolean };
@@ -188,7 +188,7 @@ export default function PosManager({ restaurantId, slug, categories, menuItems, 
                 router.refresh();
             }, 1000);
 
-        } catch (err) {
+        } catch {
             setErrorMsg("Network error occurred.");
             setLoading(false);
         }
@@ -342,7 +342,7 @@ export default function PosManager({ restaurantId, slug, categories, menuItems, 
                                         <button
                                             key={t}
                                             disabled={isLocked}
-                                            onClick={() => setOrderType(t as any)}
+                                            onClick={() => setOrderType(t as "dine_in" | "takeaway" | "delivery")}
                                             className={`flex-1 py-1.5 text-xs font-semibold rounded-md border transition-colors disabled:opacity-50 ${orderType === t ? 'border-neutral-900 bg-neutral-900 text-white dark:bg-neutral-50 dark:text-neutral-900' : 'border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-400 bg-white dark:bg-black'}`}
                                         >
                                             {t.replace('_', ' ').charAt(0).toUpperCase() + t.replace('_', ' ').slice(1)}
