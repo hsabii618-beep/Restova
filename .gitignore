@@ -145,3 +145,7 @@ supabase.tar.gz
 *.save
 *.tso
 *.tmp
+
+# agent
+.agent/
+test-rls.ts
