@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 
 export default function OnboardingPage() {
@@ -10,7 +10,8 @@ export default function OnboardingPage() {
   const [name, setName] = useState("")
   const [slug, setSlug] = useState("")
 
-  const generateSlug = (val: string) => val.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '')
+  const generateSlug = (val: string) =>
+    val.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "")
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setName(e.target.value)
@@ -33,13 +34,16 @@ export default function OnboardingPage() {
       })
 
       if (!res.ok) {
+        const raw = await res.text()
         let text = "Server error"
+
         try {
-          const json = await res.json()
+          const json = JSON.parse(raw)
           text = json.error || JSON.stringify(json)
         } catch {
-          text = await res.text()
+          text = raw || "Provisioning failed"
         }
+
         setError(text || "Provisioning failed")
         setLoading(false)
         return
@@ -50,7 +54,10 @@ export default function OnboardingPage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Network error")
       setLoading(false)
+      return
     }
+
+    setLoading(false)
   }
 
   return (
@@ -62,7 +69,9 @@ export default function OnboardingPage() {
 
       <form onSubmit={provision} style={{ display: "grid", gap: "1rem" }}>
         <div style={{ display: "grid", gap: "0.25rem" }}>
-          <label htmlFor="name" style={{ fontSize: "0.9rem", fontWeight: "bold" }}>Restaurant Name</label>
+          <label htmlFor="name" style={{ fontSize: "0.9rem", fontWeight: "bold" }}>
+            Restaurant Name
+          </label>
           <input
             id="name"
             value={name}
@@ -76,7 +85,9 @@ export default function OnboardingPage() {
         </div>
 
         <div style={{ display: "grid", gap: "0.25rem" }}>
-          <label htmlFor="slug" style={{ fontSize: "0.9rem", fontWeight: "bold" }}>URL Slug</label>
+          <label htmlFor="slug" style={{ fontSize: "0.9rem", fontWeight: "bold" }}>
+            URL Slug
+          </label>
           <input
             id="slug"
             value={slug}
@@ -101,14 +112,22 @@ export default function OnboardingPage() {
             cursor: loading ? "not-allowed" : "pointer",
             opacity: loading ? 0.7 : 1,
             fontWeight: "bold",
-            marginTop: "0.5rem"
+            marginTop: "0.5rem",
           }}
         >
           {loading ? "Submitting..." : "Submit for Approval"}
         </button>
 
         {error && (
-          <div style={{ whiteSpace: "pre-wrap", padding: "0.75rem", border: "1px solid var(--color-border-error)", borderRadius: 10, color: "var(--color-error)" }}>
+          <div
+            style={{
+              whiteSpace: "pre-wrap",
+              padding: "0.75rem",
+              border: "1px solid var(--color-border-error)",
+              borderRadius: 10,
+              color: "var(--color-error)",
+            }}
+          >
             {error}
           </div>
         )}

@@ -23,6 +23,7 @@ export async function proxy(request: NextRequest) {
     path.startsWith("/auth") ||
     path.startsWith("/forgot-password") ||
     path.startsWith("/reset-password") ||
+    path.startsWith("/staff-invite") ||
     path === "/";
 
   if (!isExcluded) {

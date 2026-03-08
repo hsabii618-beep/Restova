@@ -1,8 +1,13 @@
-import { requireDashboardRole } from "../role-guard";
+import { requireDashboardRole } from "@/app/dashboard/role-guard";
 import { FileText, Download } from "lucide-react";
 
-export default async function ReportsPage() {
-    await requireDashboardRole(["manager"]);
+interface Props {
+  params: Promise<{ slug: string }>;
+}
+
+export default async function ReportsPage({ params }: Props) {
+    const { slug } = await params;
+    await requireDashboardRole(["manager"], slug);
 
     return (
         <div className="flex flex-col gap-6 max-w-5xl">

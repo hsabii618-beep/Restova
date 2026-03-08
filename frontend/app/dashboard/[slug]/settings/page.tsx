@@ -1,9 +1,14 @@
-import { requireDashboardRole } from "../role-guard";
+import { requireDashboardRole } from "@/app/dashboard/role-guard";
 import SettingsManager from "./settings-manager";
 
-export default async function SettingsPage() {
+interface Props {
+  params: Promise<{ slug: string }>;
+}
+
+export default async function SettingsPage({ params }: Props) {
+    const { slug } = await params;
     // Reuse the proven membership join pattern from role-guard
-    const { restaurant } = await requireDashboardRole(["owner"]);
+    const { restaurant } = await requireDashboardRole(["owner"], slug);
 
     if (!restaurant) {
         return <div>Restaurant not found</div>;

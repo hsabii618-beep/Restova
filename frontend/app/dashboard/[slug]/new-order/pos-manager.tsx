@@ -30,12 +30,13 @@ type CartItem = {
 
 type Props = {
     restaurantId: string;
+    slug: string;
     categories: Category[];
     menuItems: MenuItem[];
     initialOrder?: InitialOrder;
 };
 
-export default function PosManager({ restaurantId, categories, menuItems, initialOrder }: Props) {
+export default function PosManager({ restaurantId, slug, categories, menuItems, initialOrder }: Props) {
     const router = useRouter();
 
     const [searchQuery, setSearchQuery] = useState("");
@@ -183,7 +184,7 @@ export default function PosManager({ restaurantId, categories, menuItems, initia
 
             // Redirect cleanly back to dashboard orders lists. (Or refresh if editing)
             setTimeout(() => {
-                router.push("/dashboard/orders");
+                router.push(`/dashboard/${slug}/orders`);
                 router.refresh();
             }, 1000);
 

@@ -1,13 +1,15 @@
-import { requireDashboardRole } from "../role-guard";
+import { requireDashboardRole } from "@/app/dashboard/role-guard";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import PosManager from "./pos-manager";
 
 type PageProps = {
+    params: Promise<{ slug: string }>;
     searchParams: Promise<{ edit?: string }>;
 };
 
-export default async function NewOrderPage({ searchParams }: PageProps) {
-    const { restaurantId } = await requireDashboardRole(["owner", "manager", "cashier"]);
+export default async function NewOrderPage({ params, searchParams }: PageProps) {
+    const { slug } = await params;
+    const { restaurantId } = await requireDashboardRole(["owner", "manager", "cashier"], slug);
     const { edit: editOrderId } = await searchParams;
 
     const supabase = await createSupabaseServerClient();
@@ -25,6 +27,7 @@ export default async function NewOrderPage({ searchParams }: PageProps) {
     return (
         <PosManager
             restaurantId={restaurantId}
+            slug={slug}
             categories={categoriesRes.data || []}
             menuItems={menuItemsRes.data || []}
             initialOrder={existingOrderRes.data || undefined}

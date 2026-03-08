@@ -2,7 +2,23 @@ import { getPublicMenu } from "@/lib/server/restaurants";
 import { notFound } from "next/navigation";
 import { ShoppingBag, Star, Info, ChevronRight, Clock } from "lucide-react";
 
-export default async function PublicMenuPage({ params }: { params: Promise<{ identifier: string, path: string }> }) {
+interface MenuItem {
+    id: string;
+    name: string;
+    description: string | null;
+    price: number;
+    image_path: string | null;
+    is_available: boolean;
+}
+
+interface Category {
+    id: string;
+    name: string;
+    position: number;
+    menu_items: MenuItem[];
+}
+
+export default async function RestaurantMenuPage({ params }: { params: Promise<{ identifier: string, path: string }> }) {
     const { identifier, path } = await params;
     const { data: menuData, error } = await getPublicMenu(identifier, path);
 
@@ -46,7 +62,7 @@ export default async function PublicMenuPage({ params }: { params: Promise<{ ide
             {/* NAV / CATEGORIES SCROLL */}
             <nav className="sticky top-0 z-10 bg-white/80 dark:bg-neutral-950/80 backdrop-blur-xl border-b border-neutral-200 dark:border-neutral-800 scrollbar-hide overflow-x-auto">
                 <div className="max-w-4xl mx-auto px-6 flex items-center gap-8 py-4">
-                    {categories.map((cat: any) => (
+                    {categories.map((cat: Category) => (
                         <a
                             key={cat.id}
                             href={`#cat-${cat.id}`}
@@ -60,11 +76,11 @@ export default async function PublicMenuPage({ params }: { params: Promise<{ ide
 
             <main className="max-w-4xl mx-auto px-6 py-12">
                 <div className="space-y-16">
-                    {categories.map((cat: any) => (
+                    {categories.map((cat: Category) => (
                         <section key={cat.id} id={`cat-${cat.id}`} className="scroll-mt-24">
                             <h2 className="text-2xl font-black mb-8 border-l-4 border-orange-500 pl-4 uppercase tracking-tight">{cat.name}</h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {cat.menu_items.map((item: any) => (
+                                {cat.menu_items.map((item: MenuItem) => (
                                     <div key={item.id} className="group p-5 bg-white dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-800 rounded-2xl hover:border-orange-500/30 hover:shadow-xl hover:shadow-orange-500/5 transition-all flex justify-between gap-4 cursor-pointer">
                                         <div className="flex-1">
                                             <h3 className="font-bold text-lg mb-1 group-hover:text-orange-500 transition-colors uppercase tracking-tight">{item.name}</h3>

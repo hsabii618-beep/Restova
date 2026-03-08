@@ -1,8 +1,9 @@
-import { requireDashboardRole } from "../role-guard";
+import { requireDashboardRole } from "@/app/dashboard/role-guard";
 import { BarChart3, TrendingUp, DollarSign } from "lucide-react";
 
-export default async function AnalyticsPage() {
-    await requireDashboardRole(["owner"]);
+export default async function AnalyticsPage({ params }: { params: Promise<{ slug: string }> }) {
+    const { slug } = await params;
+    await requireDashboardRole(["owner"], slug);
 
     return (
         <div className="flex flex-col gap-6 max-w-5xl">

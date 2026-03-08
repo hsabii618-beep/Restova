@@ -1,9 +1,14 @@
-import { requireDashboardRole } from "../role-guard";
+import { requireDashboardRole } from "@/app/dashboard/role-guard";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import HistoryManager from "./history-manager";
 
-export default async function HistoryPage() {
-    const { restaurantId } = await requireDashboardRole(["owner", "manager", "cashier"]);
+interface Props {
+  params: Promise<{ slug: string }>;
+}
+
+export default async function HistoryPage({ params }: Props) {
+    const { slug } = await params;
+    const { restaurantId } = await requireDashboardRole(["owner", "manager", "cashier"], slug);
     const supabase = await createSupabaseServerClient();
 
     // Fetch historical orders (completed or cancelled)

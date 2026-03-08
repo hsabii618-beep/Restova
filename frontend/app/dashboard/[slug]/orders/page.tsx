@@ -1,9 +1,14 @@
-import { requireDashboardRole } from "../role-guard";
+import { requireDashboardRole } from "@/app/dashboard/role-guard";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import OrdersManager, { Order } from "./orders-manager";
 
-export default async function OrdersPage() {
-    const { restaurantId, role } = await requireDashboardRole(["owner", "manager", "cashier"]);
+interface Props {
+  params: Promise<{ slug: string }>;
+}
+
+export default async function OrdersPage({ params }: Props) {
+    const { slug } = await params;
+    const { restaurantId, role } = await requireDashboardRole(["owner", "manager", "cashier"], slug);
 
     const supabase = await createSupabaseServerClient();
 
@@ -25,5 +30,5 @@ export default async function OrdersPage() {
         .eq("restaurant_id", restaurantId)
         .order("created_at", { ascending: false });
 
-    return <OrdersManager restaurantId={restaurantId} userRole={role} initialOrders={(orders as unknown as Order[]) || []} />;
+    return <OrdersManager restaurantId={restaurantId} slug={slug} userRole={role} initialOrders={(orders as unknown as Order[]) || []} />;
 }

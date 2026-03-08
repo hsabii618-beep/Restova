@@ -31,6 +31,9 @@ export const SECURITY_CONFIG = {
     STAFF_MANAGEMENT: { limit: 20, windowMs: 60 * 1000 },  // 20 per minute
     SETTINGS_UPDATE: { limit: 10, windowMs: 60 * 1000 },   // 10 per minute
     AUTH_ATTEMPT: { limit: 5, windowMs: 60 * 1000 },       // 5 per minute
+    STAFF_INVITATION: { limit: 10, windowMs: 60 * 1000 },  // 10 per minute
+    STAFF_CONSUME: { limit: 5, windowMs: 60 * 1000 },     // 5 per minute per IP
+    STAFF_INVITE_TOKEN_LIMIT: { limit: 3, windowMs: 60 * 1000 }, // 3 per minute per token
 };
 
 /**

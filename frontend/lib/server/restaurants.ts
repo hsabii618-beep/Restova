@@ -1,4 +1,5 @@
 export { sanitizeText, validateDomain, validateMenuPath, validateEmail, validateName, normalizeSlug, validateSlug } from "./restaurant-validation"
+import { sanitizeText, validateDomain, validateMenuPath, validateEmail, validateName, normalizeSlug, validateSlug } from "./restaurant-validation"
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { logSecurityEvent } from './security'
 
@@ -33,19 +34,8 @@ export async function provisionRestaurant({ userId, name, slug }: { userId: stri
     return { data: null, error: { status: 400, message: slugError } }
   }
 
-  const { data: existingRestaurant, error: checkError } = await supabaseAdmin
-    .from("restaurants")
-    .select("id")
-    .eq("owner_id", userId)
-    .maybeSingle()
-
-  if (checkError) {
-    return { data: null, error: { status: 500, message: checkError.message } }
-  }
-
-  if (existingRestaurant) {
-    return { data: null, error: { status: 409, message: "Conflict" } }
-  }
+  // SECURITY: Slug uniqueness is enforced by DB constraint. 
+  // Users are now allowed to own multiple restaurants in this multi-tenant architecture.
 
   const { data: restaurant, error: createError } = await supabaseAdmin
     .from("restaurants")
@@ -73,28 +63,28 @@ export async function provisionRestaurant({ userId, name, slug }: { userId: stri
 
 export async function listUserRestaurants(userId: string, supabase?: SupabaseClient) {
   const client = supabase || supabaseAdmin
-  const query = client
-    .from('restaurants')
+  
+  // SECURE: Use restaurant_users as the absolute source of truth for memberships and roles
+  const { data, error } = await client
+    .from('restaurant_users')
     .select(`
+      role,
+      restaurants (
         id,
         name,
         slug
+      )
     `)
-
-  if (!supabase) {
-    query.eq('owner_id', userId)
-  }
-
-  const { data, error } = await query
+    .eq('user_id', userId)
 
   if (error) {
     return { data: null, error: { status: 500, message: error.message } }
   }
 
   return {
-    data: (data as RestaurantRow[]).map((r) => ({
-      ...r,
-      role: 'owner'
+    data: (data || []).map((membership: any) => ({
+      ...membership.restaurants,
+      role: membership.role
     })),
     error: null
   }

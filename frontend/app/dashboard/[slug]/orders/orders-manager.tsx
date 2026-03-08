@@ -25,11 +25,12 @@ export type Order = {
 
 type Props = {
     restaurantId: string;
+    slug: string;
     userRole: string; // 'owner', 'manager', 'cashier'
     initialOrders: Order[];
 };
 
-export default function OrdersManager({ restaurantId, userRole, initialOrders }: Props) {
+export default function OrdersManager({ restaurantId, slug, userRole, initialOrders }: Props) {
     const router = useRouter();
     const [orders, setOrders] = useState<Order[]>(initialOrders);
     const [loadingMap, setLoadingMap] = useState<Record<string, boolean>>({});
@@ -71,7 +72,7 @@ export default function OrdersManager({ restaurantId, userRole, initialOrders }:
             return (
                 <button
                     disabled={isLoading}
-                    onClick={() => router.push(`/dashboard/new-order?edit=${order.id}`)}
+                    onClick={() => router.push(`/dashboard/${slug}/new-order?edit=${order.id}`)}
                     className="px-3 py-1.5 text-xs font-semibold rounded-lg flex items-center gap-1 transition-colors bg-purple-100 text-purple-800 hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:hover:bg-purple-900/50"
                 >
                     <ShoppingCart className="w-3 h-3" /> Edit in POS
