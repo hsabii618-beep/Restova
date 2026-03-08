@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import { logSecurityEvent } from './security'
 
 interface RestaurantRow {
   id: string
@@ -19,14 +20,16 @@ const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
 })
 
 export async function provisionRestaurant({ userId, name, slug }: { userId: string, name: string, slug: string }) {
-  const normalizedSlug = slug
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, "-")
-    .replace(/[^a-z0-9-]/g, "")
+  const sanitizedName = sanitizeText(name, 100);
+  const normalizedSlug = normalizeSlug(slug);
 
-  if (!normalizedSlug) {
-    return { data: null, error: { status: 400, message: "Invalid slug" } }
+  if (!validateName(sanitizedName)) {
+    return { data: null, error: { status: 400, message: "Invalid restaurant name (2-100 characters required)." } }
+  }
+
+  const slugError = validateSlug(normalizedSlug);
+  if (slugError) {
+    return { data: null, error: { status: 400, message: slugError } }
   }
 
   const { data: existingRestaurant, error: checkError } = await supabaseAdmin
@@ -45,7 +48,7 @@ export async function provisionRestaurant({ userId, name, slug }: { userId: stri
 
   const { data: restaurant, error: createError } = await supabaseAdmin
     .from("restaurants")
-    .insert({ name, slug: normalizedSlug, owner_id: userId })
+    .insert({ name, slug: normalizedSlug, owner_id: userId, is_active: false })
     .select()
     .single()
 
@@ -127,4 +130,281 @@ export async function getRestaurantForUser(userId: string, restaurantId: string,
   }
 
   return { data, error: null }
+}
+
+
+
+// SECURITY UTILITIES
+export function sanitizeText(text: string, maxLength: number = 255): string {
+  return text.trim().slice(0, maxLength);
+}
+
+export function validateDomain(domain: string): boolean {
+  if (!domain) return true; // Optional field
+  // Basic domain regex: alphanumeric, dots, hyphens
+  const domainRegex = /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$/i;
+  const isValid = domain.length <= 253 && domainRegex.test(domain);
+  if (!isValid) {
+    logSecurityEvent('INVALID_DOMAIN_ATTEMPT', { domain });
+  }
+  return isValid;
+}
+
+export function validateMenuPath(path: string): boolean {
+  if (!path) return true; // Optional field
+  // Only lowercase, numbers, hyphens
+  const pathRegex = /^[a-z0-9](-?[a-z0-9])*$/;
+  return path.length >= 2 && path.length <= 40 && pathRegex.test(path);
+}
+
+export function validateEmail(email: string): boolean {
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  return email.length <= 255 && emailRegex.test(email);
+}
+
+export function validateName(name: string): boolean {
+  return name.length >= 2 && name.length <= 100;
+}
+
+const RESERVED_SLUGS = [
+  'admin', 'api', 'app', 'apps', 'auth', 'oauth', 'callback', 'login', 'signup', 'sign-in', 'sign-up', 'logout',
+  'verify', 'reset', 'reset-password', 'forgot-password', 'dashboard', 'settings', 'account', 'accounts',
+  'owner', 'manager', 'cashier', 'staff', 'menu', 'menus', 'orders', 'order', 'history', 'billing', 'checkout',
+  'cart', 'payment', 'payments', 'support', 'help', 'contact', 'about', 'terms', 'privacy', 'security', 'status',
+  'blog', 'docs', 'documentation', 'pricing', 'careers', 'jobs', 'www', 'root', 'system', 'internal', 'public',
+  'static', 'assets', 'images', 'img', 'media', 'cdn', 'uploads', 'files', 'download', 'downloads', 'robots',
+  'sitemap', 'manifest', 'favicon', 'icon', 'icons', 'opengraph-image', 'twitter-image', '_next'
+]
+
+export function normalizeSlug(text: string): string {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+export function validateSlug(slug: string): string | null {
+  if (!slug) return "Slug is required."
+  if (slug.length < 3) return "Slug must be at least 3 characters."
+  if (slug.length > 40) return "Slug must be at most 40 characters."
+
+  // Basic security: Reject obvious traversal or special character abuse
+  if (slug.includes('.') || slug.includes('/') || slug.includes('\\') || slug.includes('%')) {
+    return "Invalid characters (dots or slashes not allowed)."
+  }
+
+  // Strict regex: lowercase letters, numbers, and hyphens only. Must start with letter/number.
+  // No consecutive hyphens allowed.
+  if (!/^[a-z0-9](-?[a-z0-9])*$/.test(slug)) {
+    logSecurityEvent('INVALID_SLUG_ATTEMPT', { slug, reason: 'regex_failure' });
+    return "Slug can only contain lowercase letters, numbers, and single hyphens. Must start and end with a letter or number."
+  }
+
+  if (RESERVED_SLUGS.includes(slug)) {
+    logSecurityEvent('RESERVED_SLUG_ATTEMPT', { slug });
+    return "This slug is reserved for platform use."
+  }
+
+  return null
+}
+
+export async function checkSlugAvailability(slug: string, restaurantId?: string) {
+  const normalized = normalizeSlug(slug)
+  const validationError = validateSlug(normalized)
+  if (validationError) return { available: false, message: validationError }
+
+  // 1. Check reserved_slugs table
+  const { data: reserved } = await supabaseAdmin
+    .from('reserved_slugs')
+    .select('restaurant_id')
+    .eq('slug', normalized)
+    .maybeSingle()
+
+  if (reserved) {
+    if (restaurantId && reserved.restaurant_id === restaurantId) {
+      return { available: true, message: "This is your current URL." }
+    }
+    return { available: false, message: "This URL is already taken or permanently reserved." }
+  }
+
+  // 2. Check restaurants table (for safety against un-reserved but active slugs)
+  const { data: existing } = await supabaseAdmin
+    .from('restaurants')
+    .select('id')
+    .eq('slug', normalized)
+    .maybeSingle()
+
+  if (existing) {
+    if (restaurantId && existing.id === restaurantId) {
+      return { available: true, message: "This is your current URL." }
+    }
+    return { available: false, message: "This URL is already taken." }
+  }
+
+  return { available: true, message: "Available" }
+}
+
+export async function updateRestaurant(userId: string, restaurantId: string, payload: Partial<RestaurantRow & { slug?: string }>, supabase?: SupabaseClient) {
+  const client = supabase || supabaseAdmin
+
+  // 1. Sanitize and Validate Name
+  if (payload.name) {
+    payload.name = sanitizeText(payload.name, 100);
+    if (!payload.name) return { data: null, error: { status: 400, message: "Restaurant name is required." } }
+  }
+
+  // 2. Sanitize and Validate Custom Domain
+  if (payload.custom_domain) {
+    const domain = (payload.custom_domain as string).trim().toLowerCase();
+    if (!validateDomain(domain)) {
+      return { data: null, error: { status: 400, message: "Invalid custom domain format." } }
+    }
+    payload.custom_domain = domain;
+  }
+
+  // 3. Sanitize and Validate Menu Path
+  if (payload.menu_path) {
+    const path = (payload.menu_path as string).trim().toLowerCase();
+    if (!validateMenuPath(path)) {
+      return { data: null, error: { status: 400, message: "Invalid menu path format. Use lowercase letters, numbers, and hyphens." } }
+    }
+    payload.menu_path = path;
+  }
+
+  // Handle Slug Locking Logic
+  if (payload.slug) {
+    const normalized = normalizeSlug(payload.slug)
+    const errorMsg = validateSlug(normalized)
+    if (errorMsg) return { data: null, error: { status: 400, message: errorMsg } }
+
+    payload.slug = normalized
+
+    // 1. Check if slug belongs to another restaurant or is reserved
+    const { data: existingReserved } = await supabaseAdmin
+      .from('reserved_slugs')
+      .select('restaurant_id')
+      .eq('slug', normalized)
+      .maybeSingle()
+
+    if (existingReserved && existingReserved.restaurant_id !== restaurantId) {
+      return { data: null, error: { status: 409, message: "This URL is already taken or reserved." } }
+    }
+
+    // 2. Check current restaurants table
+    const { data: existingRestaurant } = await supabaseAdmin
+      .from('restaurants')
+      .select('id')
+      .eq('slug', normalized)
+      .neq('id', restaurantId)
+      .maybeSingle()
+
+    if (existingRestaurant) {
+      return { data: null, error: { status: 409, message: "This URL is already taken." } }
+    }
+
+    // 3. Prevent changing if already locked
+    const { data: currentRes } = await supabaseAdmin
+      .from('restaurants')
+      .select('is_slug_locked, slug')
+      .eq('id', restaurantId)
+      .single()
+
+    if (currentRes?.is_slug_locked && currentRes.slug !== normalized) {
+      return { data: null, error: { status: 400, message: "URL slug is locked and cannot be changed." } }
+    }
+
+    // 4. If everything ok, we will also lock it
+    payload.is_slug_locked = true
+  }
+
+  const { data, error } = await client
+    .from('restaurants')
+    .update(payload)
+    .eq('id', restaurantId)
+    // Extra safety if using admin client
+    .match(supabase ? {} : { owner_id: userId })
+    .select()
+    .single()
+
+  if (error) {
+    if (error.code === '42501') {
+      logSecurityEvent('FORBIDDEN_UPDATE_ATTEMPT', { userId, restaurantId });
+      return { data: null, error: { status: 403, message: 'Forbidden' } }
+    }
+    return { data: null, error: { status: 500, message: error.message } }
+  }
+
+  // 5. If slug was updated and locked, record it in reserved_slugs
+  if (payload.slug) {
+    await supabaseAdmin
+      .from('reserved_slugs')
+      .upsert({
+        slug: payload.slug,
+        restaurant_id: restaurantId,
+        reserved_at: new Date().toISOString()
+      })
+  }
+
+  return { data, error: null }
+}
+
+export async function getPublicMenu(identifier: string, menuPath: string) {
+  // 1. Resolve restaurant by slug or custom domain
+  // SECURITY: identifier must be alphanumeric/dots/hyphens to prevent PostgREST injection
+  const safeIdentifier = identifier.trim().toLowerCase();
+  const safeMenuPath = menuPath.trim().toLowerCase();
+
+  if (!/^[a-z0-9.-]+$/.test(safeIdentifier) || !/^[a-z0-9-]+$/.test(safeMenuPath)) {
+    return { data: null, error: { status: 404, message: 'Menu not found' } }
+  }
+
+  const { data: restaurant, error: resError } = await supabaseAdmin
+    .from('restaurants')
+    .select('id, name, slug, custom_domain, menu_path, is_open, is_menu_public')
+    .or(`slug.eq."${safeIdentifier}",custom_domain.eq."${safeIdentifier}"`)
+    .eq('menu_path', safeMenuPath)
+    .eq('is_menu_public', true)
+    .maybeSingle()
+
+  if (resError || !restaurant) {
+    return { data: null, error: { status: 404, message: 'Menu not found' } }
+  }
+
+  // 2. Fetch categories and items
+  const { data: categories, error: catError } = await supabaseAdmin
+    .from('categories')
+    .select(`
+      id,
+      name,
+      position,
+      menu_items (
+        id,
+        name,
+        description,
+        price,
+        is_available,
+        image_path
+      )
+    `)
+    .eq('restaurant_id', restaurant.id)
+    .eq('is_active', true)
+    .order('position')
+
+  if (catError) {
+    return { data: null, error: { status: 500, message: catError.message } }
+  }
+
+  // Filter out unavailable items if needed, or let frontend handle
+  const menuData = {
+    restaurant,
+    categories: (categories || []).map(cat => ({
+      ...cat,
+      menu_items: (cat.menu_items || []).filter((item: any) => item.is_available)
+    }))
+  }
+
+  return { data: menuData, error: null }
 }

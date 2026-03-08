@@ -1,9 +1,18 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { provisionRestaurant, listUserRestaurants } from '@/lib/server/restaurants'
 import { getAuthUser } from '@/lib/server/auth'
+import { securityAudit, SECURITY_CONFIG } from '@/lib/server/security'
 
 export async function POST(request: NextRequest) {
   try {
+    // 1. Security Audit
+    const audit = await securityAudit(request, {
+      requireSafeOrigin: true,
+      rateLimitKey: 'restaurant-creation',
+      rateLimitConfig: SECURITY_CONFIG.SETTINGS_UPDATE
+    });
+    if (!audit.allowed) return audit.response!;
+
     const { user } = await getAuthUser(request)
 
     if (!user) {

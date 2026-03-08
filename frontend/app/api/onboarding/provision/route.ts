@@ -1,82 +1,46 @@
-import { NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
-import { createSupabaseServerClient } from "@/lib/supabase/server"
+import { NextResponse, type NextRequest } from "next/server"
+import { provisionRestaurant } from "@/lib/server/restaurants"
+import { getAuthUser } from "@/lib/server/auth"
 import { revalidatePath } from "next/cache"
+import { securityAudit, SECURITY_CONFIG } from "@/lib/server/security"
 
-export async function POST() {
-  const supabase = await createSupabaseServerClient()
-  const { data: { user } } = await supabase.auth.getUser()
+export async function POST(request: NextRequest) {
+  // 1. Security Audit (CSRF + Rate Limiting)
+  const audit = await securityAudit(request, {
+    requireSafeOrigin: true,
+    rateLimitKey: 'provisioning',
+    rateLimitConfig: SECURITY_CONFIG.SETTINGS_UPDATE
+  });
+  if (!audit.allowed) return audit.response!;
 
-  if (!user) {
+  const { user, error: authError } = await getAuthUser(request)
+
+  if (!user || authError) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  let body = {}
+  try {
+    body = await request.json()
+  } catch (e) {
+    // ignore
+  }
+  const { name, slug } = body as { name?: string, slug?: string };
 
-  if (!url || !serviceKey) {
-    return NextResponse.json({ error: "Missing server env" }, { status: 500 })
+  if (!name || !slug) {
+    return NextResponse.json({ error: "Restaurant name and slug are required." }, { status: 400 })
   }
 
-  const admin = createClient(url, serviceKey, { auth: { persistSession: false } })
+  const { data, error } = await provisionRestaurant({
+    userId: user.id,
+    name,
+    slug
+  })
 
-  const { data: existing } = await admin
-    .from("restaurants")
-    .select("id")
-    .eq("owner_id", user.id)
-    .is("deleted_at", null)
-    .eq("is_active", true)
-    .maybeSingle()
-
-  if (existing) {
-    const { data: member } = await admin
-      .from("restaurant_users")
-      .select("id")
-      .eq("restaurant_id", existing.id)
-      .eq("user_id", user.id)
-      .maybeSingle()
-
-    if (!member) {
-      await admin
-        .from("restaurant_users")
-        .insert({ restaurant_id: existing.id, user_id: user.id, role: "owner" })
-    }
-
-    revalidatePath("/dashboard")
-    return NextResponse.json({ restaurant: existing }, { status: 200 })
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: error.status })
   }
-
-  const baseSlug = `my-restaurant-${user.id.slice(0, 8).toLowerCase()}`
-  let restaurantData = null
-
-  const attempt1 = await admin
-    .from("restaurants")
-    .insert({ name: "My Restaurant", slug: baseSlug, owner_id: user.id })
-    .select("id")
-    .maybeSingle()
-
-  if (attempt1.data) {
-    restaurantData = attempt1.data
-  } else {
-    const attempt2 = await admin
-      .from("restaurants")
-      .insert({ name: "My Restaurant", slug: `${baseSlug}-${Date.now()}`, owner_id: user.id })
-      .select("id")
-      .maybeSingle()
-
-    if (attempt2.data) {
-      restaurantData = attempt2.data
-    }
-  }
-
-  if (!restaurantData) {
-    return NextResponse.json({ error: "Insert failed" }, { status: 500 })
-  }
-
-  await admin
-    .from("restaurant_users")
-    .insert({ restaurant_id: restaurantData.id, user_id: user.id, role: "owner" })
 
   revalidatePath("/dashboard")
-  return NextResponse.json({ restaurant: restaurantData }, { status: 201 })
+  return NextResponse.json({ restaurant: data }, { status: 201 })
 }
