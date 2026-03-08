@@ -11,7 +11,7 @@
 - **Rationale**: Most accurate way to verify database-level enforcement status.
 
 ### 3. Automated Isolation Test
-- **Decision**: SQL script at `infra/supabase/tests/sql/isolation_test.sql`.
+- **Decision**: SQL script at `supabase/tests/sql/isolation_test.sql`.
 - **Rationale**: Keeps database tests co-located with the `infra/` boundary while resolving file organization conflicts. Uses `SET ROLE` to simulate JWT-based auth.
 
 ## RLS/FORCE RLS Plan per Table (Phase 1: Members Only)

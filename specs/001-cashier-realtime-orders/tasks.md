@@ -82,7 +82,7 @@
 
 ### Tests for User Story 3
 
-- [ ] T013 [US3] Create SQL isolation test `infra/supabase/tests/sql/isolation_test.sql` to verify RLS on `orders` table
+- [ ] T013 [US3] Create SQL isolation test `supabase/tests/sql/isolation_test.sql` to verify RLS on `orders` table
 
 ### Implementation for User Story 3
 

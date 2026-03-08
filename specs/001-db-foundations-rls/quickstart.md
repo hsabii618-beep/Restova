@@ -33,9 +33,9 @@ Execute the isolation test suite to verify multi-tenant boundaries:
 
 ```bash
 # Path to isolation test
-# infra/supabase/tests/sql/isolation_test.sql
+# supabase/tests/sql/isolation_test.sql
 ```
 
-1. Open `infra/supabase/tests/sql/isolation_test.sql`.
+1. Open `supabase/tests/sql/isolation_test.sql`.
 2. Copy the content into the Supabase SQL Editor.
 3. Run and verify that all "Pass" assertions are met and cross-tenant queries return 0 rows.

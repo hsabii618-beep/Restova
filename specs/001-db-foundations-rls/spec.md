@@ -3,7 +3,7 @@
 **Feature Branch**: `001-db-foundations-rls`  
 **Created**: 2026-02-28  
 **Status**: Draft  
-**Input**: User description: "Title: Phase 1 - Database foundations and RLS perimeter Description: Create core tables, enums, indexes, helper functions, and enforce RLS/FORCE RLS for multi-tenant isolation. This implementation MUST strictly follow ARCHITECTURE_FREEZE_v1.0.md. No architectural decisions may be modified. Scope: Database layer only. No API routes. No frontend logic. Acceptance Criteria: - All tenant tables include restaurant_id - RLS + FORCE RLS enabled for all tenant tables - is_restaurant_member(uuid) helper exists - Cross-tenant access is blocked (automated test) - Required indexes exist - Migrations are idempotent and apply cleanly from empty database File Boundaries: - infra/supabase/migrations/* only Security Constraints: - No secrets in client - Service role server-only - No cross-tenant policies allowed Out of Scope: - No order numbering logic - No expiry logic - No printing logic - No API routes - No auth UI"
+**Input**: User description: "Title: Phase 1 - Database foundations and RLS perimeter Description: Create core tables, enums, indexes, helper functions, and enforce RLS/FORCE RLS for multi-tenant isolation. This implementation MUST strictly follow ARCHITECTURE_FREEZE_v1.0.md. No architectural decisions may be modified. Scope: Database layer only. No API routes. No frontend logic. Acceptance Criteria: - All tenant tables include restaurant_id - RLS + FORCE RLS enabled for all tenant tables - is_restaurant_member(uuid) helper exists - Cross-tenant access is blocked (automated test) - Required indexes exist - Migrations are idempotent and apply cleanly from empty database File Boundaries: - supabase/migrations/* only Security Constraints: - No secrets in client - Service role server-only - No cross-tenant policies allowed Out of Scope: - No order numbering logic - No expiry logic - No printing logic - No API routes - No auth UI"
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -50,7 +50,7 @@ As a developer, I want to be able to run database migrations against an empty or
 - **FR-001**: All tenant-specific tables MUST include a `restaurant_id` column of type UUID.
 - **FR-002**: `RLS` (Row Level Security) and `FORCE RLS` MUST be enabled on every table containing tenant data.
 - **FR-003**: System MUST implement a PostgreSQL helper function `is_restaurant_member(restaurant_uuid)` that returns a boolean based on the current `auth.uid()`.
-- **FR-004**: Database migrations MUST be idempotent and stored in `infra/supabase/migrations/*`.
+- **FR-004**: Database migrations MUST be idempotent and stored in `supabase/migrations/*`.
 - **FR-005**: All RLS policies MUST strictly prevent cross-tenant read/write operations.
 - **FR-006**: Core enums (e.g., order status, user roles) MUST be defined in the database schema.
 - **FR-007**: Performance indexes MUST be created for `restaurant_id` and other frequently queried columns.

@@ -12,7 +12,7 @@ Initialize the Restova database schema on Supabase, focusing on multi-tenant iso
 **Language/Version**: PostgreSQL 15+ (Supabase)  
 **Primary Dependencies**: Supabase Auth  
 **Storage**: PostgreSQL  
-**Testing**: SQL-based isolation verification via `infra/supabase/tests/sql/`  
+**Testing**: SQL-based isolation verification via `supabase/tests/sql/`  
 **Target Platform**: Supabase  
 **Project Type**: Database Schema  
 **Performance Goals**: Optimized queries for active order lists and expiry checks.  
@@ -91,7 +91,7 @@ Execute a system catalog query against `pg_class` to verify:
 - `relforcerowsecurity` is true for all 8 core tables.
 
 ### Cross-Tenant Isolation
-Execute `infra/supabase/tests/sql/isolation_test.sql` to verify:
+Execute `supabase/tests/sql/isolation_test.sql` to verify:
 1. User A cannot read Restaurant B data.
 2. User A cannot insert/update data for Restaurant B.
 3. Anonymous access is denied for all operations in Phase 1.

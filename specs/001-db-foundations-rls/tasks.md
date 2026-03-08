@@ -7,7 +7,7 @@
 
 - [X] **T001: Initialize Directory Structure**
   - **Description**: Create the required directory structure for Supabase migrations and SQL tests.
-  - **Path**: `infra/supabase/migrations/`, `infra/supabase/tests/sql/`
+  - **Path**: `supabase/migrations/`, `supabase/tests/sql/`
   - **DoD**: Directories exist and `.gitkeep` files added if empty to ensure tracking.
 
 ---
@@ -46,7 +46,7 @@
 ## Phase 3: Verification (Isolation Testing)
 
 - [X] **T007: Isolation Test Suite**
-  - **Description**: Create `infra/supabase/tests/sql/isolation_test.sql` to programmatically verify multi-tenant boundaries.
+  - **Description**: Create `supabase/tests/sql/isolation_test.sql` to programmatically verify multi-tenant boundaries.
   - **Tests**: 
     1. Anonymous access denied.
     2. User A cannot read Restaurant B data.
