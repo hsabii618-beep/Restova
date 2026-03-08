@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
+import { isPlatformAdminEmail } from '@/lib/server/platform-admin'
 
 function getSupabaseKeys() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -40,22 +41,41 @@ export async function updateSession(request: NextRequest) {
   })
 
   // robust auth check
-  let hasAuth = false
+  let user: { email?: string } | null | undefined = null
   try {
     const { data: userData, error } = await supabase.auth.getUser()
     if (!error && userData?.user) {
-      hasAuth = true
+      user = userData.user
     }
   } catch {
-    hasAuth = false
+    user = null
   }
 
   // protection logic
-  if (request.nextUrl.pathname.startsWith('/dashboard') && !hasAuth) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/auth/login'
-    url.searchParams.set('next', request.nextUrl.pathname)
-    return NextResponse.redirect(url)
+  const isDashboard = request.nextUrl.pathname.startsWith('/dashboard')
+  const isAdminRoute = request.nextUrl.pathname.startsWith('/admin')
+
+  if (isDashboard || isAdminRoute) {
+    if (!user) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/login'
+      url.searchParams.set('next', request.nextUrl.pathname)
+      return NextResponse.redirect(url)
+    }
+
+    const isAdmin = isPlatformAdminEmail(user.email)
+
+    if (isAdminRoute && !isAdmin) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/dashboard'
+      return NextResponse.redirect(url)
+    }
+
+    if (isDashboard && isAdmin) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/admin'
+      return NextResponse.redirect(url)
+    }
   }
 
   return response

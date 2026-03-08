@@ -4,6 +4,7 @@ import { getAuthUser } from "@/lib/server/auth"
 import { isPlatformAdminEmail } from "@/lib/server/platform-admin"
 import { logAdminAction } from "@/lib/server/audit-logger"
 import { headers } from "next/headers"
+import { securityAudit, SECURITY_CONFIG } from "@/lib/server/security"
 
 function getEnv() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -46,6 +47,12 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // 1. Security Audit
+    const audit = await securityAudit(request, {
+      requireSafeOrigin: true,
+    });
+    if (!audit.allowed) return audit.response!;
+
     const { id } = await params
     const { user } = await getAuthUser(request)
     if (!user) return NextResponse.json({ error: "Unauthenticated" }, { status: 401 })

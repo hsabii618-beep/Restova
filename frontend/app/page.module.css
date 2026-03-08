@@ -1,13 +1,13 @@
 .page {
-  --background: #fafafa;
-  --foreground: #fff;
+  --background: var(--color-bg-page);
+  --foreground: var(--color-text-inverse);
 
-  --text-primary: #000;
-  --text-secondary: #666;
+  --text-primary: var(--color-text-primary);
+  --text-secondary: var(--color-text-muted);
 
-  --button-primary-hover: #383838;
-  --button-secondary-hover: #f2f2f2;
-  --button-secondary-border: #ebebeb;
+  --button-primary-hover: var(--color-text-secondary);
+  --button-secondary-hover: var(--color-bg-surface-secondary);
+  --button-secondary-border: var(--color-border-default);
 
   display: flex;
   min-height: 100vh;
@@ -128,14 +128,14 @@ a.secondary {
   }
 
   .page {
-    --background: #000;
-    --foreground: #000;
+    --background: var(--color-text-primary);
+    --foreground: var(--color-text-primary);
 
-    --text-primary: #ededed;
-    --text-secondary: #999;
+    --text-primary: var(--color-text-inverse);
+    --text-secondary: var(--color-text-muted);
 
-    --button-primary-hover: #ccc;
-    --button-secondary-hover: #1a1a1a;
-    --button-secondary-border: #1a1a1a;
+    --button-primary-hover: var(--color-border-default);
+    --button-secondary-hover: var(--color-bg-inverse);
+    --button-secondary-border: var(--color-bg-inverse);
   }
 }

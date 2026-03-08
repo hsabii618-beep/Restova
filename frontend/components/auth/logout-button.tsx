@@ -19,7 +19,7 @@ export default function LogoutButton() {
       console.error('Logout error:', error.message);
       setLoading(false);
     } else {
-      router.push('/auth/login');
+      router.push('/login');
       router.refresh();
     }
   };
@@ -30,8 +30,8 @@ export default function LogoutButton() {
       disabled={loading}
       style={{
         backgroundColor: 'transparent',
-        border: '1px solid #0070f3',
-        color: '#0070f3',
+        border: '1px solid var(--color-brand-primary)',
+        color: 'var(--color-brand-primary)',
         padding: '0.5rem 1rem',
         borderRadius: '4px',
         cursor: loading ? 'not-allowed' : 'pointer',
